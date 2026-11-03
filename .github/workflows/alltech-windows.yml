@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  ALLTECH_NOME: "Alltech Suporte"
+  ALLTECH_NOME: "AlltechSuporte" # sem espaco: o instalador do RustDesk so aceita letras, numeros, - e _
   ALLTECH_SERVIDOR: "rustdesk.softcomapps.com"
   ALLTECH_CHAVE: "QtZP+Q0is+wAPkcK3eyoObZXMvlY8bsLYV8yEVP0CzA="
   SCITER_RUST_VERSION: "1.75"
