@@ -53,6 +53,21 @@ pub type NotifyMessageBox = fn(String, String, String, String) -> dyn Future<Out
 // the executable name of the portable version
 pub const PORTABLE_APPNAME_RUNTIME_ENV_KEY: &str = "RUSTDESK_APPNAME";
 
+/// Alltech Connect (recebe o registro dos PCs). Vazio volta ao comportamento original do RustDesk.
+pub const ALLTECH_API_SERVER: &str = "https://connect.alltech.api.br";
+
+/// Codigo do atendimento no nome do arquivo baixado: "AlltechSuporte-K7P2QX.exe" (ou "... (1).exe") -> "K7P2QX".
+/// O portatil repassa o nome original em RUSTDESK_APPNAME.
+pub fn alltech_ticket() -> Option<String> {
+    let nome = std::env::var(PORTABLE_APPNAME_RUNTIME_ENV_KEY).ok().or_else(|| {
+        std::env::current_exe().ok().and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()))
+    })?;
+    let baixo = nome.to_ascii_lowercase();
+    let inicio = baixo.find("alltechsuporte-")? + "alltechsuporte-".len();
+    let codigo: String = nome[inicio..].chars().take_while(|c| c.is_ascii_alphanumeric()).collect();
+    if (6..=16).contains(&codigo.len()) { Some(codigo.to_ascii_uppercase()) } else { None }
+}
+
 pub const PLATFORM_WINDOWS: &str = "Windows";
 pub const PLATFORM_LINUX: &str = "Linux";
 pub const PLATFORM_MACOS: &str = "Mac OS";
@@ -1279,6 +1294,11 @@ fn get_api_server_(api: String, custom: String) -> String {
     }
     if !api.is_empty() {
         return api.to_owned();
+    }
+    // Alltech Suporte: o "servidor de API" e o Alltech Connect, que recebe o ID e os dados do PC
+    // (heartbeat/sysinfo) e liga o computador ao cliente e a OS. O servidor de conexao segue o de sempre.
+    if !ALLTECH_API_SERVER.is_empty() {
+        return ALLTECH_API_SERVER.to_owned();
     }
     let s0 = get_custom_rendezvous_server(custom);
     if !s0.is_empty() {
